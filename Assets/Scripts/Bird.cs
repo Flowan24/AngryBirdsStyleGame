@@ -5,6 +5,9 @@ using Assets.Scripts;
 [RequireComponent(typeof(Rigidbody2D))]
 public class Bird : MonoBehaviour
 {
+    public delegate void OnHit(Collision2D collision);
+    public OnHit OnHittingSurface;
+    private bool HasSentHitInformation = false;
 
     // Use this for initialization
     void Start()
@@ -20,7 +23,7 @@ public class Bird : MonoBehaviour
     }
 
 
-
+    /*
     void FixedUpdate()
     {
         //if we've thrown the bird
@@ -29,8 +32,20 @@ public class Bird : MonoBehaviour
             GetComponent<Rigidbody2D>().velocity.sqrMagnitude <= Constants.MinVelocity)
         {
             //destroy the bird after 2 seconds
-            StartCoroutine(DestroyAfter(2));
+            StartCoroutine(DestroyAfter(0));
         }
+    }
+    */
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        //avoid double calls when bird hits two objects in the same frame
+        if (HasSentHitInformation)
+            return;
+
+        OnHittingSurface(collision);
+        Destroy(gameObject);
+        HasSentHitInformation = true;
     }
 
     public void OnThrow()
@@ -44,12 +59,6 @@ public class Bird : MonoBehaviour
         //make the collider normal size
         GetComponent<CircleCollider2D>().radius = Constants.BirdColliderRadiusNormal;
         State = BirdState.Thrown;
-    }
-
-    IEnumerator DestroyAfter(float seconds)
-    {
-        yield return new WaitForSeconds(seconds);
-        Destroy(gameObject);
     }
 
     public BirdState State

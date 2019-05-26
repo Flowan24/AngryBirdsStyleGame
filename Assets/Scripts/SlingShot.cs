@@ -5,7 +5,6 @@ using System;
 
 public class SlingShot : MonoBehaviour
 {
-
     //a vector that points in the middle between left and right parts of the slingshot
     private Vector3 SlingshotMiddleVector;
 
@@ -33,6 +32,8 @@ public class SlingShot : MonoBehaviour
 
     [HideInInspector]
     public float TimeSinceThrown;
+
+    public int difficultyLevel = 29;
 
     // Use this for initialization
     void Start()
@@ -104,7 +105,7 @@ public class SlingShot : MonoBehaviour
                     //throw the bird!!!
                     TimeSinceThrown = Time.time;
                     float distance = Vector3.Distance(SlingshotMiddleVector, BirdToThrow.transform.position);
-                    if (distance > 1)
+                    if (distance > 0.5f)
                     {
                         SetSlingshotLineRenderersActive(false);
                         slingshotState = SlingshotState.BirdFlying;
@@ -114,7 +115,7 @@ public class SlingShot : MonoBehaviour
                     {
                         //distance/10 was found with trial and error :)
                         //animate the bird to the wait position
-                        BirdToThrow.transform.positionTo(distance / 10, //duration
+                        BirdToThrow.transform.positionTo(0.5f, //duration
                             BirdWaitPosition.transform.position). //final position
                             setOnCompleteHandler((x) =>
                         {
@@ -188,7 +189,7 @@ public class SlingShot : MonoBehaviour
     {
         SetTrajectoryLineRenderesActive(true);
         Vector3 v2 = SlingshotMiddleVector - BirdToThrow.transform.position;
-        int segmentCount = 15;
+        int segmentCount = 30;
         float segmentScale = 2;
         Vector2[] segments = new Vector2[segmentCount];
 
@@ -209,15 +210,12 @@ public class SlingShot : MonoBehaviour
             segments[i] = segments[0] + segVelocity * time2 + 0.5f * Physics2D.gravity * Mathf.Pow(time2, 2);
         }
 
-        TrajectoryLineRenderer.SetVertexCount(segmentCount);
-        for (int i = 0; i < segmentCount; i++)
+        TrajectoryLineRenderer.positionCount = difficultyLevel;
+        for (int i = 0; i < difficultyLevel; i++)
             TrajectoryLineRenderer.SetPosition(i, segments[i]);
     }
-
-
 
     ///http://opengameart.org/content/forest-themed-sprites
     ///forest sprites found on opengameart.com
     ///© 2012-2013 Julien Jorge <julien.jorge@stuff-o-matic.com>
-
 }

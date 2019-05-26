@@ -16,6 +16,7 @@ namespace Assets.Scripts
 
     public enum GameState
     {
+        LoadingLevel,
         Start,
         BirdMovingToSlingshot,
         Playing,

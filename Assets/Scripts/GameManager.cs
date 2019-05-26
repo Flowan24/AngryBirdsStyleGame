@@ -2,39 +2,68 @@
 using System.Collections.Generic;
 using Assets.Scripts;
 using System.Linq;
+using UnityEngine.SceneManagement;
+using System;
+using UnityEngine.Events;
 
 public class GameManager : MonoBehaviour
 {
 
     public CameraFollow cameraFollow;
+    public PlayerStates playerStates;
+    public Menu menu;
     int currentBirdIndex;
     public SlingShot slingshot;
-    [HideInInspector]
-    public static GameState CurrentGameState = GameState.Start;
+    public static GameState CurrentGameState = GameState.LoadingLevel;
     private List<GameObject> Bricks;
     private List<GameObject> Birds;
-    private List<GameObject> Pigs;
+    private GameObject Pig;
 
     // Use this for initialization
     void Start()
     {
-        CurrentGameState = GameState.Start;
+        SceneManager.sceneLoaded += OnLoadingLevel;
+        SceneManager.sceneUnloaded += OnUnloadingLevel;
+        CurrentGameState = GameState.LoadingLevel;
+
         slingshot.enabled = false;
-        //find all relevant game objects
-        Bricks = new List<GameObject>(GameObject.FindGameObjectsWithTag("Brick"));
-        Birds = new List<GameObject>(GameObject.FindGameObjectsWithTag("Bird"));
-        Pigs = new List<GameObject>(GameObject.FindGameObjectsWithTag("Pig"));
-        //unsubscribe and resubscribe from the event
-        //this ensures that we subscribe only once
-        slingshot.BirdThrown -= Slingshot_BirdThrown; slingshot.BirdThrown += Slingshot_BirdThrown;
     }
 
+    private void TurnEnded(Collision2D collision)
+    {        
+        if (collision.gameObject == Pig)
+        {
+            CurrentGameState = GameState.Won;
+            menu.OpenGameWon();
+        }
+        else if (currentBirdIndex == Birds.Count - 1)
+        {
+            //no more birds, go to finished
+            CurrentGameState = GameState.Lost;
+            menu.OpenGameLost();
+        }
+        //animate the next bird, if available
+        else
+        {
+            slingshot.slingshotState = SlingshotState.Idle;
+            //bird to throw is the next on the list
+            currentBirdIndex++;
+            AnimateBirdToSlingshot();
+        }
+
+        playerStates.TurnEnded(collision, Pig);
+    }
+
+    
 
     // Update is called once per frame
     void Update()
     {
         switch (CurrentGameState)
         {
+            case GameState.LoadingLevel:
+                SceneManager.LoadScene(1,LoadSceneMode.Additive);
+                break;
             case GameState.Start:
                 //if player taps, begin animating the bird 
                 //to the slingshot
@@ -51,8 +80,8 @@ public class GameManager : MonoBehaviour
                 //and either everything has stopped moving
                 //or there has been 5 seconds since we threw the bird
                 //animate the camera to the start position
-                if (slingshot.slingshotState == SlingshotState.BirdFlying &&
-                    (BricksBirdsPigsStoppedMoving() || Time.time - slingshot.TimeSinceThrown > 5f))
+                if (slingshot.slingshotState == SlingshotState.BirdFlying) /* &&
+                    (BricksBirdsPigsStoppedMoving() || Time.time - slingshot.TimeSinceThrown > 5f))*/
                 {
                     slingshot.enabled = false;
                     AnimateCameraToStartPosition();
@@ -66,11 +95,46 @@ public class GameManager : MonoBehaviour
             case GameState.Lost:
                 if (Input.GetMouseButtonUp(0))
                 {
-                    Application.LoadLevel(Application.loadedLevel);
+                    SceneManager.UnloadSceneAsync(1);
                 }
                 break;
             default:
                 break;
+        }
+    }
+
+    private void OnLoadingLevel(Scene arg0, LoadSceneMode arg1)
+    {
+        if(arg0.buildIndex == 1) {
+            menu.CloseMenu();
+            currentBirdIndex = 0;
+            //find all relevant game objects
+            Bricks = new List<GameObject>(GameObject.FindGameObjectsWithTag("Brick"));
+            Birds = new List<GameObject>(GameObject.FindGameObjectsWithTag("Bird"));
+            foreach (GameObject go in Birds)
+            {
+                Bird bird = go.GetComponent<Bird>();
+                if (bird == null)
+                {
+                    Debug.LogError(go.name + "is incorrectly tagged");
+                    continue;
+                }
+                bird.OnHittingSurface += TurnEnded;
+            }
+            Pig = GameObject.FindGameObjectWithTag("Pig");
+            //unsubscribe and resubscribe from the event
+            //this ensures that we subscribe only once
+            slingshot.BirdThrown -= Slingshot_BirdThrown; slingshot.BirdThrown += Slingshot_BirdThrown;
+
+            CurrentGameState = GameState.Start;
+            menu.OpenGameStart();
+        }
+    }
+
+    private void OnUnloadingLevel(Scene arg0)
+    {
+        if (arg0.buildIndex == 1) {
+            CurrentGameState = GameState.LoadingLevel;
         }
     }
 
@@ -80,9 +144,9 @@ public class GameManager : MonoBehaviour
     /// i.e. they have been destroyed
     /// </summary>
     /// <returns></returns>
-    private bool AllPigsDestroyed()
+    private bool IsPigDestroyed()
     {
-        return Pigs.All(x => x == null);
+        return Pig == null;
     }
 
     /// <summary>
@@ -101,23 +165,8 @@ public class GameManager : MonoBehaviour
             setOnCompleteHandler((x) =>
                         {
                             cameraFollow.IsFollowing = false;
-                            if (AllPigsDestroyed())
-                            {
-                                CurrentGameState = GameState.Won;
-                            }
-                            //animate the next bird, if available
-                            else if (currentBirdIndex == Birds.Count - 1)
-                            {
-                                //no more birds, go to finished
-                                CurrentGameState = GameState.Lost;
-                            }
-                            else
-                            {
-                                slingshot.slingshotState = SlingshotState.Idle;
-                                //bird to throw is the next on the list
-                                currentBirdIndex++;
-                                AnimateBirdToSlingshot();
-                            }
+                            
+                          
                         });
     }
 
@@ -126,6 +175,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     void AnimateBirdToSlingshot()
     {
+        menu.CloseMenu();
         CurrentGameState = GameState.BirdMovingToSlingshot;
         Birds[currentBirdIndex].transform.positionTo
             (Vector2.Distance(Birds[currentBirdIndex].transform.position / 10,
@@ -137,6 +187,7 @@ public class GameManager : MonoBehaviour
                             x.destroy(); //destroy the animation
                             CurrentGameState = GameState.Playing;
                             slingshot.enabled = true; //enable slingshot
+                            slingshot.slingshotState = SlingshotState.Idle;
                             //current bird is the current in the list
                             slingshot.BirdToThrow = Birds[currentBirdIndex];
                         });
@@ -159,9 +210,9 @@ public class GameManager : MonoBehaviour
     /// <returns></returns>
     bool BricksBirdsPigsStoppedMoving()
     {
-        foreach (var item in Bricks.Union(Birds).Union(Pigs))
+        foreach (var item in Bricks.Union(Birds))
         {
-            if (item != null && item.GetComponent<Rigidbody2D>().velocity.sqrMagnitude > Constants.MinVelocity)
+            if (item != null && Pig != null && item.GetComponent<Rigidbody2D>().velocity.sqrMagnitude > Constants.MinVelocity && Pig.GetComponent<Rigidbody2D>().velocity.sqrMagnitude > Constants.MinVelocity)
             {
                 return false;
             }
@@ -169,40 +220,4 @@ public class GameManager : MonoBehaviour
 
         return true;
     }
-
-    /// <summary>
-    /// Found here
-    /// http://www.bensilvis.com/?p=500
-    /// </summary>
-    /// <param name="screenWidth"></param>
-    /// <param name="screenHeight"></param>
-    public static void AutoResize(int screenWidth, int screenHeight)
-    {
-        Vector2 resizeRatio = new Vector2((float)Screen.width / screenWidth, (float)Screen.height / screenHeight);
-        GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, new Vector3(resizeRatio.x, resizeRatio.y, 1.0f));
-    }
-
-    /// <summary>
-    /// Shows relevant GUI depending on the current game state
-    /// </summary>
-    void OnGUI()
-    {
-        AutoResize(800, 480);
-        switch (CurrentGameState)
-        {
-            case GameState.Start:
-                GUI.Label(new Rect(0, 150, 200, 100), "Tap the screen to start");
-                break;
-            case GameState.Won:
-                GUI.Label(new Rect(0, 150, 200, 100), "You won! Tap the screen to restart");
-                break;
-            case GameState.Lost:
-                GUI.Label(new Rect(0, 150, 200, 100), "You lost! Tap the screen to restart");
-                break;
-            default:
-                break;
-        }
-    }
-
-
 }

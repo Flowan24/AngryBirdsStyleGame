@@ -7,7 +7,7 @@ namespace Assets.Scripts
 {
     public static class Constants
     {
-        public static readonly float MinVelocity = 0.05f;
+        public static readonly float MinVelocity = 0.5f;
 
         /// <summary>
         /// The collider of the bird is bigger when on idle state
