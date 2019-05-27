@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerStates : MonoBehaviour
+public class ModulePlayerStates : MonoBehaviour
 {
     [SerializeField]
     private string gameId = "";
@@ -22,15 +22,17 @@ public class PlayerStates : MonoBehaviour
         [SerializeField]
         private int turnNumber;
         [SerializeField]
-        private Vector2 targetPosition;
+        private float[] targetPosition;
 
-        public Vector2 error;
+        public float[] error;
 
         public Turn(int turnNumber, Vector2 targetPosition)
         {
             this.id = Guid.NewGuid().ToString();
             this.turnNumber = turnNumber;
-            this.targetPosition = targetPosition;
+            this.targetPosition = new float[2];
+            this.targetPosition[0] = targetPosition.x;
+            this.targetPosition[1] = targetPosition.y;
         }
 
         public string ToJson()
@@ -56,11 +58,12 @@ public class PlayerStates : MonoBehaviour
         if (pig != null && collision.gameObject != pig)
         {
             //Get distance between bird hit point and pig position
-            turn.error = collision.GetContact(0).point - (Vector2)pig.transform.position;
+            Vector2 error = collision.GetContact(0).point - (Vector2)pig.transform.position;
+            turn.error = new float [2] { error.x, error.y };
         }
         else
         {
-            turn.error = Vector2.zero;
+            turn.error = new float[2] { 0, 0 };
         }
 
         turns.Add(turn);

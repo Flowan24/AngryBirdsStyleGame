@@ -9,6 +9,6 @@ public class Level : MonoBehaviour
     public void Start()
     {
         GameObject goPlayerStates = GameObject.FindGameObjectWithTag("PlayerStates");
-        pig.transform.position = goPlayerStates.GetComponent<PlayerStates>().GenerateTargetPosition();
+        pig.transform.position = goPlayerStates.GetComponent<ModulePlayerStates>().GenerateTargetPosition();
     }
 }

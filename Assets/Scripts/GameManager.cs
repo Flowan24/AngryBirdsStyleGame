@@ -10,7 +10,7 @@ public class GameManager : MonoBehaviour
 {
 
     public CameraFollow cameraFollow;
-    public PlayerStates playerStates;
+    public ModulePlayerStates playerStates;
     public Menu menu;
     int currentBirdIndex;
     public SlingShot slingshot;

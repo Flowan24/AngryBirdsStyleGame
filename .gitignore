@@ -12,7 +12,8 @@
 /*.userprefs
 /*.pidb
 /*.booproj
-vs./
+.vs/
+
 
 # =========================
 # Operating System Files
