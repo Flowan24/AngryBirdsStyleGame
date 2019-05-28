@@ -9,36 +9,26 @@ using Assets.Scripts;
 public class ModuleConnection : MonoBehaviour
 {
     public string apiUrl = "http://localhost:4000/graphql";
-    private string username = "";
+    public string userId = "";
     GraphQLClient client;
 
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
-
-        username = PlayerPrefs.GetString(Constants.KeyPlayerPrefsUser);
-
+        
         client = new GraphQLClient(apiUrl);
-
-        if(string.IsNullOrEmpty(username))
-        {
-            StartCoroutine(PlayerRegistration(OnPlayerAuthentication));
-        }
     }
 
-    private void OnPlayerAuthentication(bool success)
+    public void PlayerAuthentification(string accessToken, Action<bool> callback=null)
     {
-        Debug.Log("Query success: "+ success);
+        StartCoroutine(AuthentifyingPlayer(accessToken, callback));
     }
 
-    public IEnumerator PlayerRegistration(Action<bool> callback)
+    private IEnumerator AuthentifyingPlayer(string accessToken, Action<bool> callback)
     {
-        string query = @"query getUser {" +
-                       @"user(_id:""5cebd34e71892b47a8f8997b"")" +
-                       @"{ _id,email,games{ _id, totalTurns} }" +
-                       "}";
+        string query = @"query getUser($userAccesstoken:String!) { user(accessToken:$userAccesstoken) {_id}}";
 
-        string variable = "{}";
+        string variable = "{\"userAccesstoken\":\""+ accessToken + "\"}";
 
         using (UnityWebRequest www = client.Query(query, variable, "getUser"))
         {
@@ -48,18 +38,20 @@ public class ModuleConnection : MonoBehaviour
             {
                 Debug.Log(www.error);
 
-                callback(false);
+                callback?.Invoke(false);
             }
             else
             {
                 string responseString = www.downloadHandler.text;
-                //JSONObject response = new JSONObject(responseString);
-                //JSONObject data = response.GetField("data");
-                //JSONObject user = data.GetField("user");
-                //accessData(user);
-                Debug.Log(responseString);
+               
+                bool isError = responseString.Contains("error");
+                if (!isError)
+                {
+                    JSONObject response = new JSONObject(responseString);
+                    userId = response.GetField("data").GetField("user").GetField("_id").str;
+                }
 
-                callback(true);
+                callback?.Invoke(!isError);
             }
         }
     }

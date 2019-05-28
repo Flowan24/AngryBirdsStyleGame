@@ -14,6 +14,15 @@ public class ModulePlayerStates : MonoBehaviour
 
     private Vector2 currentTargetPosition;
 
+    void Awake()
+    {
+        DontDestroyOnLoad(this.gameObject);
+
+        gameId = Guid.NewGuid().ToString();
+        totalTurns = 0;
+        turns = new List<Turn>();
+    }
+
     [System.Serializable]
     private class Turn
     {
@@ -40,13 +49,6 @@ public class ModulePlayerStates : MonoBehaviour
             return JsonUtility.ToJson(this);
         }
 
-    }
-
-    void Start()
-    {
-        gameId = Guid.NewGuid().ToString();
-        totalTurns = 0;
-        turns = new List<Turn>();
     }
 
     public void TurnEnded(Collision2D collision, GameObject pig)

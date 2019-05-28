@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
 
     public CameraFollow cameraFollow;
     public ModulePlayerStates playerStates;
-    public Menu menu;
+    public GameMenu menu;
     int currentBirdIndex;
     public SlingShot slingshot;
     public static GameState CurrentGameState = GameState.LoadingLevel;
@@ -62,7 +62,7 @@ public class GameManager : MonoBehaviour
         switch (CurrentGameState)
         {
             case GameState.LoadingLevel:
-                SceneManager.LoadScene(1,LoadSceneMode.Additive);
+                SceneManager.LoadScene(2,LoadSceneMode.Additive);
                 break;
             case GameState.Start:
                 //if player taps, begin animating the bird 
@@ -95,7 +95,7 @@ public class GameManager : MonoBehaviour
             case GameState.Lost:
                 if (Input.GetMouseButtonUp(0))
                 {
-                    SceneManager.UnloadSceneAsync(1);
+                    SceneManager.UnloadSceneAsync(2);
                 }
                 break;
             default:

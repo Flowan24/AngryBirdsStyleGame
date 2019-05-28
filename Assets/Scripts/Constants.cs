@@ -15,7 +15,5 @@ namespace Assets.Scripts
         /// </summary>
         public static readonly float BirdColliderRadiusNormal = 0.235f;
         public static readonly float BirdColliderRadiusBig = 0.5f;
-
-        public static readonly string KeyPlayerPrefsUser = "USERNAME";
     }
 }
