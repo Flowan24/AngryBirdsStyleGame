@@ -27,7 +27,6 @@ namespace GraphQL {
       };
 
       string json = JsonUtility.ToJson (fullQuery);
-            Debug.Log("sending:"+json);
       //string sToken = "";
 
       UnityWebRequest request = UnityWebRequest.Post(url, UnityWebRequest.kHttpVerbPOST);

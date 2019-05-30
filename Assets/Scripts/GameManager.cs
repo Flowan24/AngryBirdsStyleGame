@@ -10,20 +10,27 @@ public class GameManager : MonoBehaviour
 {
 
     public CameraFollow cameraFollow;
-    public ModulePlayerStates playerStates;
     public GameMenu menu;
-    int currentBirdIndex;
     public SlingShot slingshot;
     public static GameState CurrentGameState = GameState.LoadingLevel;
+
+    private int currentBirdIndex;
+    private ModulePlayerStates playerStates;
     private List<GameObject> Bricks;
     private List<GameObject> Birds;
     private GameObject Pig;
+
+    void Awake()
+    {
+        playerStates = GameObject.FindObjectOfType<ModulePlayerStates>();
+    }
 
     // Use this for initialization
     void Start()
     {
         SceneManager.sceneLoaded += OnLoadingLevel;
         SceneManager.sceneUnloaded += OnUnloadingLevel;
+        SceneManager.LoadScene(2, LoadSceneMode.Additive);
         CurrentGameState = GameState.LoadingLevel;
 
         slingshot.enabled = false;
@@ -54,15 +61,13 @@ public class GameManager : MonoBehaviour
         playerStates.TurnEnded(collision, Pig);
     }
 
-    
-
     // Update is called once per frame
     void Update()
     {
         switch (CurrentGameState)
         {
             case GameState.LoadingLevel:
-                SceneManager.LoadScene(2,LoadSceneMode.Additive);
+                //Do nothing maybe show once a loading screen
                 break;
             case GameState.Start:
                 //if player taps, begin animating the bird 
@@ -105,7 +110,7 @@ public class GameManager : MonoBehaviour
 
     private void OnLoadingLevel(Scene arg0, LoadSceneMode arg1)
     {
-        if(arg0.buildIndex == 1) {
+        if(arg0.buildIndex == 2) {
             menu.CloseMenu();
             currentBirdIndex = 0;
             //find all relevant game objects
@@ -133,8 +138,9 @@ public class GameManager : MonoBehaviour
 
     private void OnUnloadingLevel(Scene arg0)
     {
-        if (arg0.buildIndex == 1) {
+        if (arg0.buildIndex == 2) {
             CurrentGameState = GameState.LoadingLevel;
+            SceneManager.LoadSceneAsync(2,LoadSceneMode.Additive);
         }
     }
 

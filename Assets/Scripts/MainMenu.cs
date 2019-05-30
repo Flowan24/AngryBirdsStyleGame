@@ -6,19 +6,44 @@ using UnityEngine.UI;
 
 public class MainMenu : MonoBehaviour
 {
-    public ModuleConnection moduleConnection;
-
+    public GameObject button;
     public Text inputText;
     public GameObject errorIndicator;
 
+    private ModuleConnection moduleConnection;
+
+    private void Awake()
+    {
+        moduleConnection = GameObject.FindObjectOfType<ModuleConnection>();
+    }
+
     public void OnStart()
     {
-        moduleConnection.PlayerAuthentification(inputText.text, (bool success) => {
-            errorIndicator.SetActive(!success);
-            if(success)
+        button.SetActive(false);
+
+        moduleConnection.PlayerAuthentication(inputText.text, (bool successPlayerAuth) => {
+            errorIndicator.SetActive(!successPlayerAuth);
+            
+            if(successPlayerAuth)
             {
-                SceneManager.LoadScene(1, LoadSceneMode.Single);
+                moduleConnection.GameInitializing((bool successGameInit) => {
+                    if(successGameInit)
+                    {
+                        SceneManager.LoadScene(1, LoadSceneMode.Single);
+                    }
+                    else
+                    {
+                        button.SetActive(true);
+                    }
+                });
             }
+            else
+            {
+                button.SetActive(true);
+            }
+
         });
+
+
     }
 }

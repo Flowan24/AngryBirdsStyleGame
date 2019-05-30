@@ -6,69 +6,46 @@ using UnityEngine;
 public class ModulePlayerStates : MonoBehaviour
 {
     [SerializeField]
-    private string gameId = "";
-    [SerializeField]
     private int totalTurns = 0;
     [SerializeField]
     private List<Turn> turns;
 
     private Vector2 currentTargetPosition;
+    private ModuleConnection moduleConnection;
 
     void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
 
-        gameId = Guid.NewGuid().ToString();
+        moduleConnection = GameObject.FindObjectOfType<ModuleConnection>();
+
         totalTurns = 0;
         turns = new List<Turn>();
-    }
-
-    [System.Serializable]
-    private class Turn
-    {
-        [SerializeField]
-        private string id;
-        [SerializeField]
-        private int turnNumber;
-        [SerializeField]
-        private float[] targetPosition;
-
-        public float[] error;
-
-        public Turn(int turnNumber, Vector2 targetPosition)
-        {
-            this.id = Guid.NewGuid().ToString();
-            this.turnNumber = turnNumber;
-            this.targetPosition = new float[2];
-            this.targetPosition[0] = targetPosition.x;
-            this.targetPosition[1] = targetPosition.y;
-        }
-
-        public string ToJson()
-        {
-            return JsonUtility.ToJson(this);
-        }
-
     }
 
     public void TurnEnded(Collision2D collision, GameObject pig)
     {
         totalTurns++;
 
-        Turn turn = new Turn(totalTurns, currentTargetPosition);
+        Turn turn = new Turn();
+        turn.game = moduleConnection.GameId;
+        turn.turnNumber = totalTurns;
+        turn.targetPosition = new float[] { currentTargetPosition.x, currentTargetPosition.y };
+        turn.error = new float[2] { 0, 0 };
+
         //if player failed to hit the pig
         if (pig != null && collision.gameObject != pig)
         {
             //Get distance between bird hit point and pig position
             Vector2 error = collision.GetContact(0).point - (Vector2)pig.transform.position;
-            turn.error = new float [2] { error.x, error.y };
+            turn.error[0] = error.x;
+            turn.error[1] = error.y;
         }
-        else
-        {
-            turn.error = new float[2] { 0, 0 };
-        }
-
+        
         turns.Add(turn);
+
+
+        moduleConnection.TurnUpload(turn);
     }
 
     public string ToJson(bool prettyPrint)

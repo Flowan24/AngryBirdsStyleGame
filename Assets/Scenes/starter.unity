@@ -349,6 +349,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moduleConnection: {fileID: 2117112753}
+  button: {fileID: 905672055}
   inputText: {fileID: 585245630}
   errorIndicator: {fileID: 1827889713}
 --- !u!114 &601483701
@@ -1286,6 +1287,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   apiUrl: http://localhost:4000/graphql
   userId: 
+  gameId: 
 --- !u!4 &2117112754
 Transform:
   m_ObjectHideFlags: 0

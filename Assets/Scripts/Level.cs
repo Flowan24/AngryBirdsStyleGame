@@ -5,10 +5,15 @@ using UnityEngine;
 public class Level : MonoBehaviour
 {
     public GameObject pig;
+    private ModulePlayerStates playerStates;
 
-    public void Start()
+    void Awake()
     {
-        GameObject goPlayerStates = GameObject.FindGameObjectWithTag("PlayerStates");
-        pig.transform.position = goPlayerStates.GetComponent<ModulePlayerStates>().GenerateTargetPosition();
+        playerStates = GameObject.FindObjectOfType<ModulePlayerStates>();
+    }
+
+    void Start()
+    {
+        pig.transform.position = playerStates.GenerateTargetPosition();    
     }
 }
