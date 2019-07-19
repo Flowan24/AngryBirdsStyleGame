@@ -6,8 +6,6 @@ using UnityEngine;
 public class Turn
 {
     [SerializeField]
-    public string game;
-    [SerializeField]
     public int turnNumber;
     [SerializeField]
     public float[] targetPosition;

@@ -8,7 +8,7 @@ using Assets.Scripts;
 
 public class ModuleConnection : MonoBehaviour
 {
-    public string apiUrl = "http://localhost:4000/graphql";
+    public string apiUrl = "http://localhost:5000/graphql";
     private string userId = "";
     public string UserId
     {
@@ -36,11 +36,11 @@ public class ModuleConnection : MonoBehaviour
 
     private IEnumerator AuthentifyingPlayer(string accessToken, Action<bool> callback)
     {
-        string query = @"query getUser($userAccesstoken:String!) { user(accessToken:$userAccesstoken) {_id}}";
+        string query = @"query authUser($accessToken:String!) { authUser(accessToken:$accessToken) {_id}}";
 
-        string variable = "{\"userAccesstoken\":\""+ accessToken + "\"}";
+        string variable = "{\"accessToken\":\""+ accessToken + "\"}";
 
-        using (UnityWebRequest www = client.Query(query, variable, "getUser"))
+        using (UnityWebRequest www = client.Query(query, variable, "authUser"))
         {
             yield return www.SendWebRequest();
 
@@ -53,12 +53,11 @@ public class ModuleConnection : MonoBehaviour
             else
             {
                 string responseString = www.downloadHandler.text;
-               
                 bool isError = responseString.Contains("error");
                 if (!isError)
                 {
                     JSONObject response = new JSONObject(responseString);
-                    userId = response.GetField("data").GetField("user").GetField("_id").str;
+                    userId = response.GetField("data").GetField("authUser").GetField("_id").str;
                 }
                 else
                 {
@@ -79,7 +78,7 @@ public class ModuleConnection : MonoBehaviour
 
     private IEnumerator InitializingGame(Action<bool> callback)
     {
-        string query = @"mutation createGame($cg: CreateGameInput!) {createGame(game: $cg) {_id}}";
+        string query = @"mutation createGame($cg: GameInput!) {createGame(game: $cg) {_id}}";
 
         string variable = "{\"cg\": { \"user\": \""+userId+"\"}}";
 
@@ -115,18 +114,18 @@ public class ModuleConnection : MonoBehaviour
     #endregion
 
     #region upload Turn
-    public void TurnUpload(Turn turn, Action<bool> callback = null)
+    public void TurnUpload(string gameID, Turn turn, Action<bool> callback = null)
     {
-        StartCoroutine(uploadingTurn(turn, callback));
+        StartCoroutine(uploadingTurn(gameID, turn, callback));
     }
 
-    private IEnumerator uploadingTurn(Turn turn, Action<bool> callback)
+    private IEnumerator uploadingTurn(string gameId, Turn turn, Action<bool> callback)
     {
-        string query = @"mutation createTurn($ct: CreateTurnInput!) {createTurn(turn: $ct) {_id}}";
+        string query = @"mutation addTurn($gameId: ObjectId!, $ct: TurnInput!) {addTurn(gameId:$gameId, turn: $ct) {_id}}";
         
-        string variable = "{ \"ct\": "+turn.ToJson()+"}";
+        string variable = "{ \"gameId\": \""+gameId+"\", \"ct\": " + turn.ToJson()+"}";
 
-        using (UnityWebRequest www = client.Query(query, variable, "createTurn"))
+        using (UnityWebRequest www = client.Query(query, variable, "addTurn"))
         {
             yield return www.SendWebRequest();
 

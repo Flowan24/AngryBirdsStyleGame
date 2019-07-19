@@ -220,7 +220,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a123a626a186a004aaf471d6c45210e3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  gameId: 
   totalTurns: 0
   turns: []
 --- !u!4 &354982697
@@ -348,7 +347,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e7bd7d34de5bd1d44a0e782b84e22417, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moduleConnection: {fileID: 2117112753}
   button: {fileID: 905672055}
   inputText: {fileID: 585245630}
   errorIndicator: {fileID: 1827889713}
@@ -1285,9 +1283,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 060d1005b571747409f2dc59dae0913b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  apiUrl: http://localhost:4000/graphql
-  userId: 
-  gameId: 
+  apiUrl: http://localhost:5000/graphql
 --- !u!4 &2117112754
 Transform:
   m_ObjectHideFlags: 0

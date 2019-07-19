@@ -28,7 +28,6 @@ public class ModulePlayerStates : MonoBehaviour
         totalTurns++;
 
         Turn turn = new Turn();
-        turn.game = moduleConnection.GameId;
         turn.turnNumber = totalTurns;
         turn.targetPosition = new float[] { currentTargetPosition.x, currentTargetPosition.y };
         turn.error = new float[2] { 0, 0 };
@@ -45,7 +44,7 @@ public class ModulePlayerStates : MonoBehaviour
         turns.Add(turn);
 
 
-        moduleConnection.TurnUpload(turn);
+        moduleConnection.TurnUpload(moduleConnection.GameId, turn);
     }
 
     public string ToJson(bool prettyPrint)
