@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     public GameMenu menu;
     public SlingShot slingshot;
     public static GameState CurrentGameState = GameState.LoadingLevel;
+    private ModuleConnection moduleConnection;
 
     private int currentBirdIndex;
     private ModulePlayerStates playerStates;
@@ -23,6 +24,7 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         playerStates = GameObject.FindObjectOfType<ModulePlayerStates>();
+        moduleConnection = GameObject.FindObjectOfType<ModuleConnection>();
     }
 
     // Use this for initialization
@@ -30,9 +32,19 @@ public class GameManager : MonoBehaviour
     {
         SceneManager.sceneLoaded += OnLoadingLevel;
         SceneManager.sceneUnloaded += OnUnloadingLevel;
-        SceneManager.LoadScene(2, LoadSceneMode.Additive);
-        CurrentGameState = GameState.LoadingLevel;
+        LoadLevel();
+    }
 
+    private void LoadLevel()
+    {
+        CurrentGameState = GameState.LoadingLevel;
+        moduleConnection.FetchNextTask(OnReceiveTaskRecommendation);
+    }
+
+    private void OnReceiveTaskRecommendation(TaskRecommendation taskRecommendation)
+    {
+        SceneManager.LoadScene(2, LoadSceneMode.Additive);
+        slingshot.difficultyLevel = Mathf.RoundToInt((1 - taskRecommendation.Difficulty) * 30);
         slingshot.enabled = false;
     }
 
@@ -139,8 +151,7 @@ public class GameManager : MonoBehaviour
     private void OnUnloadingLevel(Scene arg0)
     {
         if (arg0.buildIndex == 2) {
-            CurrentGameState = GameState.LoadingLevel;
-            SceneManager.LoadSceneAsync(2,LoadSceneMode.Additive);
+            LoadLevel();
         }
     }
 

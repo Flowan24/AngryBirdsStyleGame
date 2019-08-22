@@ -4,7 +4,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Networking;
-using Assets.Scripts;
 
 public class ModuleConnection : MonoBehaviour
 {
@@ -19,6 +18,9 @@ public class ModuleConnection : MonoBehaviour
     {
         get { return gameId; }
     }
+    private List<TaskRecommendation> exerciseTypes;
+    public 
+
     GraphQLClient client;
 
     private void Awake()
@@ -70,19 +72,20 @@ public class ModuleConnection : MonoBehaviour
     }
     #endregion
 
-    #region Game Initializing
-    public void GameInitializing(Action<bool> callback = null)
+    #region Fetch Next Exercise
+
+    internal void FetchNextTask(Action<TaskRecommendation> callback)
     {
-        StartCoroutine(InitializingGame(callback));
+        StartCoroutine(fetchingNextTask(callback));
     }
 
-    private IEnumerator InitializingGame(Action<bool> callback)
+    private IEnumerator fetchingNextTask(Action<TaskRecommendation> callback)
     {
-        string query = @"mutation createGame($cg: GameInput!) {createGame(game: $cg) {_id}}";
+        string query = "query fetchNextTaskType {fetchNextTask(userId:\"" + this.userId+ "\" ){name,difficulty}}";
 
-        string variable = "{\"cg\": { \"user\": \""+userId+"\"}}";
+        string variable = "{}";
 
-        using (UnityWebRequest www = client.Query(query, variable, "createGame"))
+        using (UnityWebRequest www = client.Query(query, variable, "fetchNextTaskType"))
         {
             yield return www.SendWebRequest();
 
@@ -90,42 +93,47 @@ public class ModuleConnection : MonoBehaviour
             {
                 Debug.Log(www.error);
 
-                callback?.Invoke(false);
+                callback?.Invoke(null);
             }
             else
             {
                 string responseString = www.downloadHandler.text;
-
+                
                 bool isError = responseString.Contains("error");
+
+                TaskRecommendation nextTask = null;
                 if (!isError)
                 {
+                    nextTask = new TaskRecommendation();
                     JSONObject response = new JSONObject(responseString);
-                    gameId = response.GetField("data").GetField("createGame").GetField("_id").str;
+                    nextTask.Name = response.GetField("data").GetField("fetchNextTask").GetField("name").str;
+                    nextTask.Difficulty = response.GetField("data").GetField("fetchNextTask").GetField("difficulty").n;
                 }
                 else
                 {
                     Debug.Log("error:" + responseString);
                 }
 
-                callback?.Invoke(!isError);
+                callback?.Invoke(nextTask);
             }
         }
     }
+
     #endregion
 
-    #region upload Turn
-    public void TurnUpload(string gameID, Turn turn, Action<bool> callback = null)
+    #region Submit TaskObservation
+    public void SubmitTaskObservation(TaskObservation taskObservation, Action<bool> callback = null)
     {
-        StartCoroutine(uploadingTurn(gameID, turn, callback));
+        StartCoroutine(UploadingTaskObservation(taskObservation, callback));
     }
 
-    private IEnumerator uploadingTurn(string gameId, Turn turn, Action<bool> callback)
+    private IEnumerator UploadingTaskObservation(TaskObservation taskObservation, Action<bool> callback)
     {
-        string query = @"mutation addTurn($gameId: ObjectId!, $ct: TurnInput!) {addTurn(gameId:$gameId, turn: $ct) {_id}}";
+        string query = @"mutation submitTaskObservations ($in: TaskObservationsInput!) {submitTaskObservations(taskObservations: $in) {_id}}";
         
-        string variable = "{ \"gameId\": \""+gameId+"\", \"ct\": " + turn.ToJson()+"}";
+        string variable = "{ \"in\": " + JsonUtility.ToJson(taskObservation) + "}";
 
-        using (UnityWebRequest www = client.Query(query, variable, "addTurn"))
+        using (UnityWebRequest www = client.Query(query, variable, "submitTaskObservations"))
         {
             yield return www.SendWebRequest();
 
@@ -150,9 +158,9 @@ public class ModuleConnection : MonoBehaviour
             }
         }
     }
-    #endregion
-    /*
-    private void accessData(JSONObject obj)
+#endregion
+
+    public void accessData(JSONObject obj)
     {
         switch (obj.type)
         {
@@ -162,13 +170,13 @@ public class ModuleConnection : MonoBehaviour
                     string key = (string)obj.keys[i];
                     JSONObject j = (JSONObject)obj.list[i];
                     Debug.Log(key);
-                    accessData(j);
+                    this.accessData(j);
                 }
                 break;
             case JSONObject.Type.ARRAY:
                 foreach (JSONObject j in obj.list)
                 {
-                    accessData(j);
+                    this.accessData(j);
                 }
                 break;
             case JSONObject.Type.STRING:
@@ -186,5 +194,4 @@ public class ModuleConnection : MonoBehaviour
 
         }
     }
-    */
 }

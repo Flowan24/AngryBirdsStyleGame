@@ -26,16 +26,7 @@ public class MainMenu : MonoBehaviour
             
             if(successPlayerAuth)
             {
-                moduleConnection.GameInitializing((bool successGameInit) => {
-                    if(successGameInit)
-                    {
-                        SceneManager.LoadScene(1, LoadSceneMode.Single);
-                    }
-                    else
-                    {
-                        button.SetActive(true);
-                    }
-                });
+                SceneManager.LoadScene(1, LoadSceneMode.Single);
             }
             else
             {
