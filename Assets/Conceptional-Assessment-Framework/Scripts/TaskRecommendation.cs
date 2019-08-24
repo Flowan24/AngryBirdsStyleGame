@@ -6,7 +6,7 @@ using UnityEngine;
 public class TaskRecommendation
 {
     [SerializeField]
-    protected string name;          public string Name { get; set; }
+    protected string taskName;      public string TaskName { get { return taskName; } set { taskName = value; } }
     [SerializeField] 
-    protected float difficulty;     public float Difficulty { get; set; }
+    protected float difficulty;     public float Difficulty { get { return difficulty; } set { difficulty = value; } }
 }

@@ -9,19 +9,8 @@ public class ModuleConnection : MonoBehaviour
 {
     public string apiUrl = "http://localhost:5000/graphql";
     private string userId = "";
-    public string UserId
-    {
-        get { return userId; }
-    }
-    private string gameId = "";
-    public string GameId
-    {
-        get { return gameId; }
-    }
-    private List<TaskRecommendation> exerciseTypes;
-    public 
 
-    GraphQLClient client;
+    private GraphQLClient client;
 
     private void Awake()
     {
@@ -55,7 +44,8 @@ public class ModuleConnection : MonoBehaviour
             else
             {
                 string responseString = www.downloadHandler.text;
-                bool isError = responseString.Contains("error");
+                bool isError = IsResponseError(responseString);
+                Debug.Log(responseString);
                 if (!isError)
                 {
                     JSONObject response = new JSONObject(responseString);
@@ -81,7 +71,7 @@ public class ModuleConnection : MonoBehaviour
 
     private IEnumerator fetchingNextTask(Action<TaskRecommendation> callback)
     {
-        string query = "query fetchNextTaskType {fetchNextTask(userId:\"" + this.userId+ "\" ){name,difficulty}}";
+        string query = "query fetchNextTaskType {fetchNextTask(userId:\"" + this.userId+ "\" ){taskName,difficulty}}";
 
         string variable = "{}";
 
@@ -99,14 +89,14 @@ public class ModuleConnection : MonoBehaviour
             {
                 string responseString = www.downloadHandler.text;
                 
-                bool isError = responseString.Contains("error");
+                bool isError = IsResponseError(responseString);
 
                 TaskRecommendation nextTask = null;
                 if (!isError)
                 {
                     nextTask = new TaskRecommendation();
                     JSONObject response = new JSONObject(responseString);
-                    nextTask.Name = response.GetField("data").GetField("fetchNextTask").GetField("name").str;
+                    nextTask.TaskName = response.GetField("data").GetField("fetchNextTask").GetField("taskName").str;
                     nextTask.Difficulty = response.GetField("data").GetField("fetchNextTask").GetField("difficulty").n;
                 }
                 else
@@ -124,13 +114,14 @@ public class ModuleConnection : MonoBehaviour
     #region Submit TaskObservation
     public void SubmitTaskObservation(TaskObservation taskObservation, Action<bool> callback = null)
     {
+        taskObservation.User = userId;
         StartCoroutine(UploadingTaskObservation(taskObservation, callback));
     }
 
     private IEnumerator UploadingTaskObservation(TaskObservation taskObservation, Action<bool> callback)
     {
         string query = @"mutation submitTaskObservations ($in: TaskObservationsInput!) {submitTaskObservations(taskObservations: $in) {_id}}";
-        
+
         string variable = "{ \"in\": " + JsonUtility.ToJson(taskObservation) + "}";
 
         using (UnityWebRequest www = client.Query(query, variable, "submitTaskObservations"))
@@ -147,11 +138,12 @@ public class ModuleConnection : MonoBehaviour
             {
                 string responseString = www.downloadHandler.text;
 
-                bool isError = responseString.Contains("error");
-                
+                bool isError = IsResponseError(responseString);
+
                 if (isError)
                 {
-                    Debug.Log("error:" + responseString);
+
+                    Debug.Log("response:" + responseString);
                 }
                 
                 callback?.Invoke(!isError);
@@ -160,38 +152,8 @@ public class ModuleConnection : MonoBehaviour
     }
 #endregion
 
-    public void accessData(JSONObject obj)
+    private bool IsResponseError(string response)
     {
-        switch (obj.type)
-        {
-            case JSONObject.Type.OBJECT:
-                for (int i = 0; i < obj.list.Count; i++)
-                {
-                    string key = (string)obj.keys[i];
-                    JSONObject j = (JSONObject)obj.list[i];
-                    Debug.Log(key);
-                    this.accessData(j);
-                }
-                break;
-            case JSONObject.Type.ARRAY:
-                foreach (JSONObject j in obj.list)
-                {
-                    this.accessData(j);
-                }
-                break;
-            case JSONObject.Type.STRING:
-                Debug.Log(obj.str);
-                break;
-            case JSONObject.Type.NUMBER:
-                Debug.Log(obj.n);
-                break;
-            case JSONObject.Type.BOOL:
-                Debug.Log(obj.b);
-                break;
-            case JSONObject.Type.NULL:
-                Debug.Log("NULL");
-                break;
-
-        }
+        return response.Contains("error") || response.Contains("invalid");
     }
 }

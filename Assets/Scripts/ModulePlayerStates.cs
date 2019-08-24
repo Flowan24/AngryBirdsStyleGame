@@ -10,6 +10,7 @@ public class ModulePlayerStates : MonoBehaviour
 
     private TaskRecommendation currentTaskRecommendation;
 
+
     void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
@@ -17,14 +18,14 @@ public class ModulePlayerStates : MonoBehaviour
         moduleConnection = GameObject.FindObjectOfType<ModuleConnection>();
     }
 
-    public void FetchNextTurn()
+    public void FetchNextTurn(Action<TaskRecommendation> callback)
     {
-        moduleConnection.FetchNextTask(NextTurn);
-    }
-
-    private void NextTurn(TaskRecommendation taskRecommendation)
-    {
-        currentTaskRecommendation = taskRecommendation;
+        moduleConnection.FetchNextTask((TaskRecommendation taskRecommendation) =>
+        {
+            Debug.Log("Task Recommendation: " + JsonUtility.ToJson(taskRecommendation));
+            currentTaskRecommendation = taskRecommendation;
+            callback(taskRecommendation);
+        });
     }
 
     public void TurnEnded(Collision2D collision, GameObject pig)
@@ -33,6 +34,8 @@ public class ModulePlayerStates : MonoBehaviour
         
         taskObservation.TargetPosition = new float[] { currentTargetPosition.x, currentTargetPosition.y };
         taskObservation.Error = new float[2] { 0, 0 };
+        taskObservation.TaskName = currentTaskRecommendation.TaskName;
+        taskObservation.Difficulty = currentTaskRecommendation.Difficulty;
 
         //if player failed to hit the pig
         if (pig != null && collision.gameObject != pig)

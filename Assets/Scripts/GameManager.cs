@@ -13,7 +13,6 @@ public class GameManager : MonoBehaviour
     public GameMenu menu;
     public SlingShot slingshot;
     public static GameState CurrentGameState = GameState.LoadingLevel;
-    private ModuleConnection moduleConnection;
 
     private int currentBirdIndex;
     private ModulePlayerStates playerStates;
@@ -24,7 +23,6 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         playerStates = GameObject.FindObjectOfType<ModulePlayerStates>();
-        moduleConnection = GameObject.FindObjectOfType<ModuleConnection>();
     }
 
     // Use this for initialization
@@ -38,11 +36,12 @@ public class GameManager : MonoBehaviour
     private void LoadLevel()
     {
         CurrentGameState = GameState.LoadingLevel;
-        moduleConnection.FetchNextTask(OnReceiveTaskRecommendation);
+        playerStates.FetchNextTurn(OnReceiveTaskRecommendation);
     }
 
     private void OnReceiveTaskRecommendation(TaskRecommendation taskRecommendation)
     {
+
         SceneManager.LoadScene(2, LoadSceneMode.Additive);
         slingshot.difficultyLevel = Mathf.RoundToInt((1 - taskRecommendation.Difficulty) * 30);
         slingshot.enabled = false;

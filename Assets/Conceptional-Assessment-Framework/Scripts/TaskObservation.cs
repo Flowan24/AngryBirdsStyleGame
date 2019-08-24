@@ -6,20 +6,21 @@ using UnityEngine;
 public class TaskObservation
 {
     [SerializeField]
-    protected float[] targetPosition; public float[] TargetPosition { set; get; }
+    protected float[] targetPosition;       public float[] TargetPosition { get { return targetPosition; } set { targetPosition = value; } }
 
     [SerializeField]
-    protected float[] error;        public float[] Error { set; get;}
+    protected float[] error;                public float[] Error { get { return error; } set { error = value; } }
 
     [SerializeField]
-    protected float difficulty;     public float Difficulty { set;  get; }
+    protected float difficulty;             public float Difficulty { get { return difficulty; } set { difficulty = value; } }
 
     [SerializeField]
-    protected float weight;         public float Weight { set;  get; }
+    protected float weight;                 public float Weight { get { return weight; } set { weight = value; } }
 
     [SerializeField]
-    protected string userId;        public string UserId { set;  get; }
+    protected string user;                public string User { get { return user; } set { user = value; } }
+
 
     [SerializeField]
-    protected string typeId;        public string TypeId { set; get; }
+    protected string taskName;              public string TaskName { get { return taskName; } set { taskName = value; } }
 }
