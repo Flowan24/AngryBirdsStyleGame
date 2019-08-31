@@ -124,6 +124,8 @@ public class ModuleConnection : MonoBehaviour
 
         string variable = "{ \"in\": " + JsonUtility.ToJson(taskObservation) + "}";
 
+        Debug.Log("Task Observation: " + JsonUtility.ToJson(taskObservation));
+
         using (UnityWebRequest www = client.Query(query, variable, "submitTaskObservations"))
         {
             yield return www.SendWebRequest();

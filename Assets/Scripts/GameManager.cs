@@ -36,40 +36,51 @@ public class GameManager : MonoBehaviour
     private void LoadLevel()
     {
         CurrentGameState = GameState.LoadingLevel;
-        playerStates.FetchNextTurn(OnReceiveTaskRecommendation);
+        SceneManager.LoadScene(2, LoadSceneMode.Additive);
+    }
+
+    private void OnLoadingLevel(Scene arg0, LoadSceneMode arg1)
+    {
+        if (arg0.buildIndex == 2)
+        {
+            menu.CloseMenu();
+            currentBirdIndex = 0;
+            //find all relevant game objects
+            Bricks = new List<GameObject>(GameObject.FindGameObjectsWithTag("Brick"));
+            Birds = new List<GameObject>(GameObject.FindGameObjectsWithTag("Bird"));
+            foreach (GameObject go in Birds)
+            {
+                Bird bird = go.GetComponent<Bird>();
+                if (bird == null)
+                {
+                    Debug.LogError(go.name + "is incorrectly tagged");
+                    continue;
+                }
+                bird.OnHittingSurface += TurnEnded;
+            }
+            Pig = GameObject.FindGameObjectWithTag("Pig");
+            //unsubscribe and resubscribe from the event
+            //this ensures that we subscribe only once
+            slingshot.BirdThrown -= Slingshot_BirdThrown; slingshot.BirdThrown += Slingshot_BirdThrown;
+
+            CurrentGameState = GameState.Start;
+            playerStates.FetchNextTurn(OnReceiveTaskRecommendation);
+        }
     }
 
     private void OnReceiveTaskRecommendation(TaskRecommendation taskRecommendation)
     {
+        bool isfreezeStrength = string.Compare(taskRecommendation.TaskName, "STRENGTH") == 0;
+        bool isfreezeAngle = string.Compare(taskRecommendation.TaskName, "ANGLE") == 0;
+        slingshot.freezeStrength(isfreezeStrength, Pig.transform.position);
+        slingshot.freezeAngle(isfreezeAngle, Pig.transform.position);
 
-        SceneManager.LoadScene(2, LoadSceneMode.Additive);
-        slingshot.difficultyLevel = Mathf.RoundToInt((1 - taskRecommendation.Difficulty) * 30);
+        GameObject.FindGameObjectWithTag("IndicatorAngle").SetActive(isfreezeAngle);
+        GameObject.FindGameObjectWithTag("IndicatorStrength").SetActive(isfreezeStrength);
+
+        slingshot.difficultyLevel = Mathf.RoundToInt((1 - taskRecommendation.Difficulty) * 20);
         slingshot.enabled = false;
-    }
-
-    private void TurnEnded(Collision2D collision)
-    {        
-        if (collision.gameObject == Pig)
-        {
-            CurrentGameState = GameState.Won;
-            menu.OpenGameWon();
-        }
-        else if (currentBirdIndex == Birds.Count - 1)
-        {
-            //no more birds, go to finished
-            CurrentGameState = GameState.Lost;
-            menu.OpenGameLost();
-        }
-        //animate the next bird, if available
-        else
-        {
-            slingshot.slingshotState = SlingshotState.Idle;
-            //bird to throw is the next on the list
-            currentBirdIndex++;
-            AnimateBirdToSlingshot();
-        }
-
-        playerStates.TurnEnded(collision, Pig);
+        menu.OpenGameStart();
     }
 
     // Update is called once per frame
@@ -107,44 +118,32 @@ public class GameManager : MonoBehaviour
             //if we have won or lost, we will restart the level
             //in a normal game, we would show the "Won" screen 
             //and on tap the user would go to the next level
-            case GameState.Won:
-            case GameState.Lost:
-                if (Input.GetMouseButtonUp(0))
-                {
-                    SceneManager.UnloadSceneAsync(2);
-                }
+            case GameState.TurnEnded:
                 break;
             default:
                 break;
         }
     }
 
-    private void OnLoadingLevel(Scene arg0, LoadSceneMode arg1)
+    private void TurnEnded(Collision2D collision)
     {
-        if(arg0.buildIndex == 2) {
-            menu.CloseMenu();
-            currentBirdIndex = 0;
-            //find all relevant game objects
-            Bricks = new List<GameObject>(GameObject.FindGameObjectsWithTag("Brick"));
-            Birds = new List<GameObject>(GameObject.FindGameObjectsWithTag("Bird"));
-            foreach (GameObject go in Birds)
-            {
-                Bird bird = go.GetComponent<Bird>();
-                if (bird == null)
-                {
-                    Debug.LogError(go.name + "is incorrectly tagged");
-                    continue;
-                }
-                bird.OnHittingSurface += TurnEnded;
-            }
-            Pig = GameObject.FindGameObjectWithTag("Pig");
-            //unsubscribe and resubscribe from the event
-            //this ensures that we subscribe only once
-            slingshot.BirdThrown -= Slingshot_BirdThrown; slingshot.BirdThrown += Slingshot_BirdThrown;
-
-            CurrentGameState = GameState.Start;
-            menu.OpenGameStart();
+        if (collision.gameObject == Pig || currentBirdIndex == Birds.Count - 1)
+        {
+            CurrentGameState = GameState.TurnEnded;
+            SceneManager.UnloadSceneAsync(2);
+            //CurrentGameState = GameState.Won;
+            //menu.OpenGameWon();
         }
+        //animate the next bird, if available
+        else
+        {
+            slingshot.slingshotState = SlingshotState.Idle;
+            //bird to throw is the next on the list
+            currentBirdIndex++;
+            AnimateBirdToSlingshot();
+        }
+
+        playerStates.TurnEnded(collision, Pig);
     }
 
     private void OnUnloadingLevel(Scene arg0)
@@ -152,17 +151,6 @@ public class GameManager : MonoBehaviour
         if (arg0.buildIndex == 2) {
             LoadLevel();
         }
-    }
-
-
-    /// <summary>
-    /// A check whether all Pigs are null
-    /// i.e. they have been destroyed
-    /// </summary>
-    /// <returns></returns>
-    private bool IsPigDestroyed()
-    {
-        return Pig == null;
     }
 
     /// <summary>

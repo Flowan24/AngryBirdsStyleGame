@@ -45,7 +45,7 @@ public class ModulePlayerStates : MonoBehaviour
             taskObservation.Error[0] = error.x;
             taskObservation.Error[1] = error.y;
         }
-        
+
         moduleConnection.SubmitTaskObservation(taskObservation);
     }
 

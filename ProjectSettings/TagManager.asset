@@ -9,6 +9,8 @@ TagManager:
   - Pig
   - PlayerStates
   - ModuleConnection
+  - IndicatorAngle
+  - IndicatorStrength
   layers:
   - Default
   - TransparentFX

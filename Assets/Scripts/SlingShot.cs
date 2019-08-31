@@ -35,6 +35,9 @@ public class SlingShot : MonoBehaviour
 
     public int difficultyLevel = 29;
 
+    private bool isAngleFrozen = false;
+    private bool isStrenghtFrozen = false;
+
     // Use this for initialization
     void Start()
     {
@@ -53,6 +56,17 @@ public class SlingShot : MonoBehaviour
         //pointing at the middle position of the two vectors
         SlingshotMiddleVector = new Vector3((LeftSlingshotOrigin.position.x + RightSlingshotOrigin.position.x) / 2,
             (LeftSlingshotOrigin.position.y + RightSlingshotOrigin.position.y) / 2, 0);
+    }
+    public void freezeAngle(bool freeze, Vector3 targetPosition)
+    {
+        isAngleFrozen = freeze;
+        if (BirdToThrow != null) BirdToThrow.transform.position = new Vector3(BirdToThrow.transform.position.x, -2.5f, BirdToThrow.transform.position.z);
+    }
+
+    public void freezeStrength(bool freeze, Vector3 targetPosition)
+    {
+        isStrenghtFrozen = freeze;
+        if (BirdToThrow != null) BirdToThrow.transform.position = new Vector3(-5.0f, BirdToThrow.transform.position.y, BirdToThrow.transform.position.z);
     }
 
     // Update is called once per frame
@@ -84,11 +98,20 @@ public class SlingShot : MonoBehaviour
                     //get where user is tapping
                     Vector3 location = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                     location.z = 0;
+
+                    if (isAngleFrozen == true)
+                    {
+                        location.y = -2.5f;
+                    }
+                    else if (isStrenghtFrozen == true)
+                    {
+                        location.x = -5f;
+                    }
                     //we will let the user pull the bird up to a maximum distance
                     if (Vector3.Distance(location, SlingshotMiddleVector) > 1.5f)
                     {
                         //basic vector maths :)
-                        var maxPosition = (location - SlingshotMiddleVector).normalized * 1.5f + SlingshotMiddleVector;
+                        Vector2 maxPosition = (location - SlingshotMiddleVector).normalized * 1.5f + SlingshotMiddleVector;
                         BirdToThrow.transform.position = maxPosition;
                     }
                     else
@@ -158,6 +181,15 @@ public class SlingShot : MonoBehaviour
     {
         //initialization of the ready to be thrown bird
         BirdToThrow.transform.position = BirdWaitPosition.position;
+        if (isAngleFrozen == true)
+        {
+
+            BirdToThrow.transform.position = new Vector3(BirdToThrow.transform.position.x, -2.5f, BirdToThrow.transform.position.z);
+        }
+        else if (isStrenghtFrozen == true)
+        {
+            BirdToThrow.transform.position = new Vector3(-5.0f, BirdToThrow.transform.position.y, BirdToThrow.transform.position.z);
+        }
         slingshotState = SlingshotState.Idle;
         SetSlingshotLineRenderersActive(true);
     }
