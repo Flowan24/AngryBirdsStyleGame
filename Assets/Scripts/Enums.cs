@@ -20,7 +20,8 @@ namespace Assets.Scripts
         Start,
         BirdMovingToSlingshot,
         Playing,
-        TurnEnded
+        TurnEnded,
+        GameFinished
     }
 
 

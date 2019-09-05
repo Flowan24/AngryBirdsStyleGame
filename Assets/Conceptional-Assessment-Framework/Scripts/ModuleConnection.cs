@@ -9,15 +9,17 @@ public class ModuleConnection : MonoBehaviour
 {
     public string apiUrl = "http://localhost:5000/graphql";
     private string userId = "";
-
     private GraphQLClient client;
 
     private void Awake()
     {
         DontDestroyOnLoad(this.gameObject);
-        
+
         client = new GraphQLClient(apiUrl);
     }
+
+    public int Turns { get; private set; } = 0;
+    public int Type { get; private set; } = 0;
 
     #region Player Authentication
     public void PlayerAuthentication(string accessToken, Action<bool> callback=null)
@@ -27,7 +29,7 @@ public class ModuleConnection : MonoBehaviour
 
     private IEnumerator AuthentifyingPlayer(string accessToken, Action<bool> callback)
     {
-        string query = @"query authUser($accessToken:String!) { authUser(accessToken:$accessToken) {_id}}";
+        string query = @"query authUser($accessToken:String!) { authUser(accessToken:$accessToken) {_id, turns,type}}";
 
         string variable = "{\"accessToken\":\""+ accessToken + "\"}";
 
@@ -50,6 +52,8 @@ public class ModuleConnection : MonoBehaviour
                 {
                     JSONObject response = new JSONObject(responseString);
                     userId = response.GetField("data").GetField("authUser").GetField("_id").str;
+                    Turns = Convert.ToInt16(response.GetField("data").GetField("authUser").GetField("turns").i);
+                    Type = Convert.ToInt16(response.GetField("data").GetField("authUser").GetField("type").i);
                 }
                 else
                 {
@@ -142,12 +146,12 @@ public class ModuleConnection : MonoBehaviour
 
                 bool isError = IsResponseError(responseString);
 
-                if (isError)
-                {
-
+                if (isError) {
                     Debug.Log("response:" + responseString);
                 }
-                
+                else {
+                    this.Turns++;
+                }
                 callback?.Invoke(!isError);
             }
         }

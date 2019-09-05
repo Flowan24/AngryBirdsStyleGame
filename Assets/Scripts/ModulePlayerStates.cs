@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class ModulePlayerStates : MonoBehaviour
 {
@@ -16,6 +17,16 @@ public class ModulePlayerStates : MonoBehaviour
         DontDestroyOnLoad(this.gameObject);
 
         moduleConnection = GameObject.FindObjectOfType<ModuleConnection>();
+    }
+
+    public int Turns
+    {
+        get { return moduleConnection.Turns; }
+    }
+
+    public int PlayerType
+    {
+        get { return moduleConnection.Type; }
     }
 
     public void FetchNextTurn(Action<TaskRecommendation> callback)
@@ -56,7 +67,7 @@ public class ModulePlayerStates : MonoBehaviour
 
     public Vector3 GenerateTargetPosition()
     {
-        currentTargetPosition.x = UnityEngine.Random.Range(0.5f, 6.5f);
+        currentTargetPosition.x = UnityEngine.Random.Range(2.0f, 6.5f);
         currentTargetPosition.y = -3.5f;
 
         return (Vector3)currentTargetPosition;
