@@ -73,25 +73,15 @@ public class GameManager : MonoBehaviour
 
     private void OnReceiveTaskRecommendation(TaskRecommendation taskRecommendation)
     {
-        bool isfreezeStrength;
-        bool isfreezeAngle;
-        if (playerStates.PlayerType == 0) { 
-            isfreezeStrength = string.Compare(taskRecommendation.TaskName, "STRENGTH") == 0;
-            isfreezeAngle = string.Compare(taskRecommendation.TaskName, "ANGLE") == 0;
-
+        bool isfreezeStrength = string.Compare(taskRecommendation.TaskName, "STRENGTH") == 0;
+        bool isfreezeAngle = string.Compare(taskRecommendation.TaskName, "ANGLE") == 0;
+        if (playerStates.PlayerType == 0)
+        { 
             slingshot.difficultyLevel = string.Compare(taskRecommendation.TaskName, "TARGET") != 0 ? Mathf.RoundToInt((1 - taskRecommendation.Difficulty) * 20) : 0;
         }
         else
         {
-            string taskname = (playerStates.Turns < 10) ? "STRENGTH" : (playerStates.Turns < 20) ? "ANGLE" : "TARGET";
-            taskname = (playerStates.Turns == 10 || playerStates.Turns == 11 || playerStates.Turns == 12) ? "TARGET" : taskname;
-            taskname = (playerStates.Turns == 20 || playerStates.Turns == 21 || playerStates.Turns == 22) ? "TARGET" : taskname;
-            taskname = (playerStates.Turns == 30 || playerStates.Turns == 31 || playerStates.Turns == 32) ? "TARGET" : taskname;
-
-            isfreezeStrength = string.Compare(taskname, "STRENGTH") == 0;
-            isfreezeAngle = string.Compare(taskname, "ANGLE") == 0;
-
-            slingshot.difficultyLevel = string.Compare(taskRecommendation.TaskName, "TARGET") != 0 ?  Mathf.RoundToInt(20 - (((float)((float)playerStates.Turns / (float)35)) * 20)) : 0;
+            slingshot.difficultyLevel = ((playerStates.Turns >= 10 && playerStates.Turns <= 12) || (playerStates.Turns >= 23 && playerStates.Turns <= 25) || (playerStates.Turns >= 36 && playerStates.Turns <= 38))  ? 0 :  Mathf.RoundToInt(20 - (((float)((float)playerStates.Turns / (float)35)) * 20));
         }
 
         slingshot.freezeStrength(isfreezeStrength, Pig.transform.position);
@@ -103,7 +93,7 @@ public class GameManager : MonoBehaviour
 
 
         slingshot.enabled = false;
-        if(this.playerStates.Turns < 35) {
+        if(this.playerStates.Turns < 39) {
             menu.OpenGameStart();
         }
         else

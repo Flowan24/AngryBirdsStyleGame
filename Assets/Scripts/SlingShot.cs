@@ -242,7 +242,7 @@ public class SlingShot : MonoBehaviour
             segments[i] = segments[0] + segVelocity * time2 + 0.5f * Physics2D.gravity * Mathf.Pow(time2, 2);
         }
 
-        TrajectoryLineRenderer.positionCount = difficultyLevel;
+        TrajectoryLineRenderer.positionCount = difficultyLevel > 0 ? difficultyLevel : 0;
         for (int i = 0; i < difficultyLevel; i++)
             TrajectoryLineRenderer.SetPosition(i, segments[i]);
     }
