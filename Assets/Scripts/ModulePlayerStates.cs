@@ -24,6 +24,12 @@ public class ModulePlayerStates : MonoBehaviour
         get { return moduleConnection.Turns; }
     }
 
+    public float Difficulty
+    {
+        get { return currentTaskRecommendation.Difficulty; }
+        set { currentTaskRecommendation.Difficulty = value; }
+    }
+
     public int PlayerType
     {
         get { return moduleConnection.Type; }
@@ -36,6 +42,7 @@ public class ModulePlayerStates : MonoBehaviour
             Debug.Log("Task Recommendation: " + JsonUtility.ToJson(taskRecommendation));
             taskRecommendation.TaskName = this.PlayerType == 0 ? taskRecommendation.TaskName : string.Compare(taskRecommendation.TaskName, "TARGET") == 0 || this.Turns >= 26  ? "TARGET" : (this.Turns < 10) ? "ANGLE" : "STRENGTH";
             currentTaskRecommendation = taskRecommendation;
+            
             callback(taskRecommendation);
         });
     }

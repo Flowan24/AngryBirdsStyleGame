@@ -81,9 +81,11 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            slingshot.difficultyLevel = ((playerStates.Turns >= 10 && playerStates.Turns <= 12) || (playerStates.Turns >= 23 && playerStates.Turns <= 25) || (playerStates.Turns >= 36 && playerStates.Turns <= 38))  ? 0 :  Mathf.RoundToInt(20 - (((float)((float)playerStates.Turns / (float)35)) * 20));
-        }
+            playerStates.Difficulty = ((float)((float)playerStates.Turns / (float)39));
 
+            slingshot.difficultyLevel = ((playerStates.Turns >= 10 && playerStates.Turns <= 12) || (playerStates.Turns >= 23 && playerStates.Turns <= 25) || (playerStates.Turns >= 36 && playerStates.Turns <= 38))  ? 0 :  Mathf.RoundToInt(20 - (playerStates.Difficulty * 20));            
+        }
+        
         slingshot.freezeStrength(isfreezeStrength, Pig.transform.position);
         slingshot.freezeAngle(isfreezeAngle, Pig.transform.position);
 
