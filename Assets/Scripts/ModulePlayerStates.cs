@@ -40,7 +40,7 @@ public class ModulePlayerStates : MonoBehaviour
         moduleConnection.FetchNextTask((TaskRecommendation taskRecommendation) =>
         {
             Debug.Log("Task Recommendation: " + JsonUtility.ToJson(taskRecommendation));
-            taskRecommendation.TaskName = this.PlayerType == 0 ? taskRecommendation.TaskName : string.Compare(taskRecommendation.TaskName, "TARGET") == 0 || this.Turns >= 26  ? "TARGET" : (this.Turns < 10) ? "ANGLE" : "STRENGTH";
+            taskRecommendation.TaskName = this.PlayerType == 0 ? taskRecommendation.TaskName : string.Compare(taskRecommendation.TaskName, "TARGET") == 0 || this.Turns > 25  ? "TARGET" : (this.Turns < 10) ? "ANGLE" : "STRENGTH";
             currentTaskRecommendation = taskRecommendation;
             
             callback(taskRecommendation);

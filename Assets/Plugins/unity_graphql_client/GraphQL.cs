@@ -36,7 +36,7 @@ namespace GraphQL {
 
       request.uploadHandler = data;
       request.SetRequestHeader ("Content-Type", "application/json");
-      //request.SetRequestHeader ("Authorization", "Bearer " + sToken);
+      //request.SetRequestHeader ("x-token", "secret");
 
       return request;
     }
